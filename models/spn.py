@@ -22,6 +22,8 @@ class SPN(torch.nn.Module):
         dropout_prob=0.2,
         device=avail_device,
         batch_norm=True,
+        initial_mlp_size=1,
+        prediction_head_size=2,
     ):
         """
         Constructs a SPN model.
@@ -49,7 +51,7 @@ class SPN(torch.nn.Module):
             device=device,
             batch_norm=batch_norm,
             final_activation=True,
-            size=1,
+            size=initial_mlp_size,
         )
 
         sp_mp_layers = [] # shortest path message passing layers
@@ -74,7 +76,7 @@ class SPN(torch.nn.Module):
             device=device,
             final_activation=False,
             batch_norm=batch_norm,
-            size=2,
+            size=prediction_head_size,
         )
 
     def reset_parameters(self):
