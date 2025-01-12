@@ -3,7 +3,7 @@ import torch_geometric
 import torch_geometric.datasets as datasets
 from torch.nn import ReLU
 
-from train_models import get_trained_model
+from models.train_models import get_trained_model
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 

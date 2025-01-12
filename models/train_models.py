@@ -2,9 +2,9 @@ import torch
 import torch.nn.functional as F
 from torch.optim import Adam
 
-from models.gcn import GCN
-from models.jump_gcn import JumpKnowGCN
-from models.spn import SPN
+from .gcn import GCN
+from .jump_gcn import JumpKnowGCN
+from .spn import SPN
 
 
 def evaluate(

@@ -1,7 +1,7 @@
 import torch
 import torch.nn.functional as F
 
-from models.mlp import instantiate_mlp
+from .mlp import instantiate_mlp
 
 
 avail_device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

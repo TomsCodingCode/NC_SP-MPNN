@@ -5,8 +5,8 @@ import torch
 import torch.nn.functional as F
 from torch.nn import ModuleList
 
-from models.mlp import instantiate_mlp
-from models.spn_layer import SPN_Layer
+from .mlp import instantiate_mlp
+from .spn_layer import SPN_Layer
 
 avail_device = "cuda" if torch.cuda.is_available() else "cpu"
 
