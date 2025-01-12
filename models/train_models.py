@@ -1,6 +1,7 @@
 import torch
 import torch.nn.functional as F
 from torch.optim import Adam
+from tqdm.auto import tqdm
 
 from .gcn import GCN
 from .jump_gcn import JumpKnowGCN
@@ -20,7 +21,7 @@ def evaluate(
     return acc
 
 
-def get_trained_model(model: str, data, model_params, params):
+def get_trained_model(model: str, data, model_params: dict, params: dict):
     """
     Returns a trained model.
     :param model: The model to be trained
@@ -43,11 +44,11 @@ def get_trained_model(model: str, data, model_params, params):
     # load dataset
     data = data.to(device)
 
-    optimizer = Adam(model.parameters(), lr=params["lr"], weight_decay=params["weight_decay"])
+    optimizer = Adam(model.parameters(), lr=params.get("lr", 0.001), weight_decay=params.get("weight_decay", 0))
 
     # training iteration
     max_acc = 0
-    for epoch in range(params["epochs"]):
+    for epoch in tqdm(range(params.get("epochs", 100))):
         model.train()
         optimizer.zero_grad()
         logits = model(data)
@@ -62,11 +63,11 @@ def get_trained_model(model: str, data, model_params, params):
             patience = 0
         else:
             patience += 1
-            if patience == params["max_patience"]:
-                pass
-                #break
+            # with max_patience = -1 there is no early stopping
+            if patience == params.get("max_patience", -1):
+                break
         
-        if type(model) == SPN:
+        if params.get("verbose", False):
             print(f"Epoch: {epoch}, Loss: {loss.item()}, Val Acc: {val_acc}")
 
     if best_params is not None:
