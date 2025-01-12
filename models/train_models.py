@@ -11,11 +11,12 @@ from .spn import SPN
 def evaluate(
     model,
     data,
-    mask
+    mask,
+    predict_func = lambda mod, data: mod(data)
 ):
     model.eval()
     with torch.no_grad():
-      logits = model(data)
+      logits = predict_func(model, data)
       preds = logits.argmax(dim=1)
       acc = (preds[mask] == data.y[mask]).sum().item() / mask.sum().item()
     return acc
@@ -50,17 +51,18 @@ def get_trained_model(model: str, data, model_params: dict, params: dict):
     max_acc = 0
     validation_prog = []
     progress_iterator = tqdm(range(params.get("epochs", 100)), desc='Loss: unknown')
+    func = params.get('predict_func', lambda mod, data: mod(data))
     for epoch in progress_iterator:
         model.train()
         optimizer.zero_grad()
-        logits = model(data)
+        logits = func(model, data)
         loss = F.cross_entropy(logits[data.train_mask], data.y[data.train_mask])
         loss.backward()
         optimizer.step()
 
         progress_iterator.set_description(f'Loss: {loss.item():.4f}')
 
-        val_acc = evaluate(model, data, data.val_mask)
+        val_acc = evaluate(model, data, data.val_mask, predict_func=func)
         validation_prog.append(val_acc)
         if val_acc > max_acc:
             max_acc = val_acc
@@ -77,8 +79,8 @@ def get_trained_model(model: str, data, model_params: dict, params: dict):
 
     if best_params is not None:
         model.load_state_dict(best_params)
-    train_acc = evaluate(model, data, data.train_mask)
-    test_acc = evaluate(model, data, data.test_mask)
+    train_acc = evaluate(model, data, data.train_mask, predict_func=func)
+    test_acc = evaluate(model, data, data.test_mask, predict_func=func)
     print(f'Training ended after {epoch + 1} Epochs:')
     print(f'Train Accuracy: {train_acc:.4f}, Val Accuracy: {max_acc:.4f}, Test Accuracy: {test_acc:.4f}')
     return model, validation_prog

@@ -90,29 +90,32 @@ class SPN(torch.nn.Module):
         self.prediction_head.reset_parameters()
 
 
-    def forward(self, data):
+    def forward(self, data, shortest_paths = None) -> torch.Tensor:
         x_feat: torch.Tensor = data.x.to(self.device)
         edge_index: torch.Tensor = torch.sparse_coo_tensor(data.edge_index, torch.ones(data.edge_index.size(1), device=self.device), device=self.device)
 
         # Shortest path calculation
-        # k neighborhoods
-        k_hops = edge_index
-        for k in range(2, self.max_distance + 1):
-            hop = torch.sparse.mm(k_hops, edge_index)
-            hop = (hop - k_hops * torch.inf).coalesce()
-            adj = hop.indices().T[hop.values() > 0].T
-            k_hops += torch.sparse_coo_tensor(
-                adj,
-                torch.ones(adj.size(1), device=self.device) * k,
-                hop.shape,
-                device=self.device
-            )
+        if shortest_paths is None:
+            # k neighborhoods
+            k_hops = edge_index
+            for k in range(2, self.max_distance + 1):
+                hop = torch.sparse.mm(k_hops, edge_index)
+                hop = (hop - k_hops * torch.inf).coalesce()
+                adj = hop.indices().T[hop.values() > 0].T
+                k_hops += torch.sparse_coo_tensor(
+                    adj,
+                    torch.ones(adj.size(1), device=self.device) * k,
+                    hop.shape,
+                    device=self.device
+                )
 
-        # remove the diagonal and copy to appropriate variables
-        k_hops = k_hops.coalesce()
-        mask = k_hops.indices()[0] != k_hops.indices()[1]
-        edge_index = k_hops.indices()[:, mask].to(self.device)
-        edge_weights = k_hops.values()[mask].to(self.device)
+            # remove the diagonal and copy to appropriate variables
+            k_hops = k_hops.coalesce()
+            mask = k_hops.indices()[0] != k_hops.indices()[1]
+            edge_index = k_hops.indices()[:, mask].to(self.device)
+            edge_weights = k_hops.values()[mask].to(self.device)
+        else:
+            edge_index, edge_weights = shortest_paths
 
         # Input encoding
         x_feat = self.initial_mlp(x_feat)
