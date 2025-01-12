@@ -5,6 +5,8 @@ import torch
 import torch.nn.functional as F
 from torch.nn import ModuleList
 
+from utils.shortest_paths import shortest_distances
+
 from .mlp import instantiate_mlp
 from .spn_layer import SPN_Layer
 
@@ -98,24 +100,7 @@ class SPN(torch.nn.Module):
 
         # Shortest path calculation
         if shortest_paths is None:
-            # k neighborhoods
-            k_hops = edge_index
-            for k in range(2, self.max_distance + 1):
-                hop = torch.sparse.mm(k_hops, edge_index)
-                hop = (hop - k_hops * torch.inf).coalesce()
-                adj = hop.indices().T[hop.values() > 0].T
-                k_hops += torch.sparse_coo_tensor(
-                    adj,
-                    torch.ones(adj.size(1), device=self.device) * k,
-                    hop.shape,
-                    device=self.device
-                )
-
-            # remove the diagonal and copy to appropriate variables
-            k_hops = k_hops.coalesce()
-            mask = k_hops.indices()[0] != k_hops.indices()[1]
-            edge_index = k_hops.indices()[:, mask].to(self.device)
-            edge_weights = k_hops.values()[mask].to(self.device)
+            edge_index, edge_weights = shortest_distances(self.max_distance, edge_index)
         else:
             edge_index, edge_weights = shortest_paths
 
