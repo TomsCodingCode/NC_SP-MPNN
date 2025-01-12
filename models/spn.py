@@ -1,12 +1,9 @@
 # The SPN model is based on the NetHSP_GIN model implemented in the SP-MPNN paper:
 # https://github.com/radoslav11/SP-MPNN/blob/main/src/models/hsp_gin.py
 
-import numpy as np
 import torch
 import torch.nn.functional as F
-from torch.nn import ModuleList, Linear, Embedding
-from torch_scatter import scatter_max, scatter_mean, scatter_sum
-from scipy.sparse.csgraph import floyd_warshall
+from torch.nn import ModuleList
 
 from models.mlp import instantiate_mlp
 from models.spn_layer import SPN_Layer
