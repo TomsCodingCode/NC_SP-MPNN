@@ -48,6 +48,6 @@ spn_params = dict(
 gcn_params["n_layers"] = 5 # less over-smoothing
 #jump_gcn_model = get_trained_model("jump_gcn", dataset.data, gcn_params, training_params)
 
-spn_model = get_trained_model("spn", dataset.data, spn_params, training_params)
+spn_model, acc = get_trained_model("spn", dataset.data, spn_params, training_params)
 
 print("a")

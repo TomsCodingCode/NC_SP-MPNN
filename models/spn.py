@@ -98,7 +98,7 @@ class SPN(torch.nn.Module):
         # k neighborhoods
         k_hops = edge_index
         for k in range(2, self.max_distance + 1):
-            hop = k_hops.mm(edge_index)
+            hop = torch.sparse.mm(k_hops, edge_index)
             hop = (hop - k_hops * torch.inf).coalesce()
             adj = hop.indices().T[hop.values() > 0].T
             k_hops += torch.sparse_coo_tensor(
@@ -124,7 +124,7 @@ class SPN(torch.nn.Module):
                 edge_weights=edge_weights,
             ).to(self.device)
             x_feat = self.dropout(x_feat)
-        print("spn prediction done!")
+
         return self.prediction_head(x_feat)
 
     def log_hop_weights(self, neptune_client, exp_dir):

@@ -48,7 +48,9 @@ def get_trained_model(model: str, data, model_params: dict, params: dict):
 
     # training iteration
     max_acc = 0
-    for epoch in tqdm(range(params.get("epochs", 100))):
+    validation_prog = []
+    progress_iterator = tqdm(range(params.get("epochs", 100)), desc='Loss: unknown')
+    for epoch in progress_iterator:
         model.train()
         optimizer.zero_grad()
         logits = model(data)
@@ -56,7 +58,10 @@ def get_trained_model(model: str, data, model_params: dict, params: dict):
         loss.backward()
         optimizer.step()
 
+        progress_iterator.set_description(f'Loss: {loss.item():.4f}')
+
         val_acc = evaluate(model, data, data.val_mask)
+        validation_prog.append(val_acc)
         if val_acc > max_acc:
             max_acc = val_acc
             best_params = model.state_dict()
@@ -72,5 +77,8 @@ def get_trained_model(model: str, data, model_params: dict, params: dict):
 
     if best_params is not None:
         model.load_state_dict(best_params)
-    print(f'Training ended after {epoch} Epochs with accuracy {max_acc}')
-    return model
+    train_acc = evaluate(model, data, data.train_mask)
+    test_acc = evaluate(model, data, data.test_mask)
+    print(f'Training ended after {epoch + 1} Epochs:')
+    print(f'Train Accuracy: {train_acc:.4f}, Val Accuracy: {max_acc:.4f}, Test Accuracy: {test_acc:.4f}')
+    return model, validation_prog
