@@ -1,7 +1,17 @@
-from typing import Tuple
+from typing import Callable, Tuple
 
 import torch
 
+def shortest_distance_prediction_function(max_distance: int, edge_index: torch.Tensor) -> Callable[[torch.nn.Module, torch.Tensor], torch.Tensor]:
+    """
+    Generates a function that can be used as a prediction function for the get_trained_model and evaluate functions.
+    Computes the shortest distances between nodes in the graph upto a maximal distance of max_distance and passes them as a tuple to the model.
+    :param max_distance: Maximal shortest distance to be considered.
+    :param edge_index: Edge index tensor of the graph. A LongTensor of shape [2, #Edges]
+    :return: A function that can be used as a prediction function.
+    """
+    edge_index, edge_weights = shortest_distances(max_distance, edge_index)
+    return lambda mod, dat: mod(dat, (edge_index, edge_weights))
 
 # k neighborhoods
 def shortest_distances(max_distance: int, edge_index: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
