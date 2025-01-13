@@ -36,23 +36,13 @@ class JumpKnowGCN(nn.Module):
     ## ------ End Solution ------ ##
 
   def forward(self, data) -> torch.Tensor:
-    X, A = data.x, data.edge_index
-    ## ------ Begin Solution ------ ##
-    results = [] # <-- new
-    for layer in self.lays or []:
-      X = layer(X, A)
-      X = F.relu(X)
-      X = F.dropout(X, p=self.dropout_ratio, training=self.training)
-      results.append(X)
-    # v new v
-    if results:
-      X = torch.stack(results).max(dim=0).values
+    X = self.generate_node_embeddings(data.x, data.edge_index)
     X = self.pred(X)
     return X
     ## ------ End Solution ------ ##
 
-  def generate_node_embeddings(self, X, A) -> torch.Tensor:
-    ## ------ Begin Solution ------ ##
+  def generate_node_embeddings(self, data) -> torch.Tensor:
+    X, A = data.x, data.edge_index
     results = [] # <-- new
     for layer in self.lays or []:
       X = layer(X, A)
@@ -63,7 +53,6 @@ class JumpKnowGCN(nn.Module):
     if results:
       X = torch.stack(results).max(dim=0).values
     return X
-    ## ------ End Solution ------ ##
 
   def param_init(self):
     ## ------ Begin Solution ------ ##

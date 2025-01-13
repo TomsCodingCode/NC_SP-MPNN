@@ -40,18 +40,17 @@ class GCN(nn.Module):
     ## ------ End Solution ------ ##
 
   def forward(self, data) -> torch.Tensor:
+    X = self.generate_node_embeddings(data)
+    X = self.pred(X)
+    return X
+
+  def generate_node_embeddings(self, data) -> torch.Tensor:
     X, A = data.x, data.edge_index
-    ## ------ Begin Solution ------ ##
     for layer in self.lays or []:
       X = layer(X, A)
       X = self.act_fn(X)
       X = self.dropout(X)
-    X = self.pred(X)
     return X
-    ## ------ End Solution ------ ##
-
-  def generate_node_embeddings(self, X, A) -> torch.Tensor:
-    return self.forward(X, A)
 
   def param_init(self):
     ## ------ Begin Solution ------ ##

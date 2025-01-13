@@ -95,27 +95,32 @@ class SPN(torch.nn.Module):
 
 
     def forward(self, data, shortest_paths = None) -> torch.Tensor:
-        x_feat: torch.Tensor = data.x.to(self.device)
-        edge_index: torch.Tensor = torch.sparse_coo_tensor(data.edge_index, torch.ones(data.edge_index.size(1), device=self.device), device=self.device)
+        x_feat = self.generate_node_embeddings(data, shortest_paths)
+        return self.prediction_head(x_feat)
+    
+    def generate_node_embeddings(self, data, shortest_paths = None) -> torch.Tensor:
+        X = data.x.to(self.device)
+        A = torch.sparse_coo_tensor(data.edge_index, torch.ones(data.edge_index.size(1), device=self.device), device=self.device)
 
         # Shortest path calculation
         if shortest_paths is None:
-            edge_index, edge_weights = shortest_distances(self.max_distance, edge_index)
+            edge_index, edge_weights = shortest_distances(self.max_distance, A)
         else:
             edge_index, edge_weights = shortest_paths
-
+        
         # Input encoding
-        x_feat = self.initial_mlp(x_feat)
+        X = self.initial_mlp(X)
 
+        # Message passing
         for layer in self.sp_mp_layers:
-            x_feat = layer(
-                node_embeddings=x_feat,
+            X = layer(
+                node_embeddings=X,
                 edge_index=edge_index,
                 edge_weights=edge_weights,
             ).to(self.device)
-            x_feat = self.dropout(x_feat)
-
-        return self.prediction_head(x_feat)
+            X = self.dropout(X)
+        
+        return X
 
     def log_hop_weights(self, neptune_client, exp_dir):
         if self.outside_aggr in ["weight"]:
