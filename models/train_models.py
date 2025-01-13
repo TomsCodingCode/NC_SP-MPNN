@@ -44,6 +44,7 @@ def get_trained_model(model: str, data, model_params: dict, params: dict):
 
     # load dataset
     data = data.to(device)
+    model = model.to(device)
 
     optimizer = Adam(model.parameters(), lr=params.get("lr", 0.001), weight_decay=params.get("weight_decay", 0))
 
