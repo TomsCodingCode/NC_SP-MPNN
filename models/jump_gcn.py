@@ -36,7 +36,7 @@ class JumpKnowGCN(nn.Module):
     ## ------ End Solution ------ ##
 
   def forward(self, data) -> torch.Tensor:
-    X = self.generate_node_embeddings(data.x, data.edge_index)
+    X = self.generate_node_embeddings(data)
     X = self.pred(X)
     return X
     ## ------ End Solution ------ ##

@@ -5,10 +5,9 @@ import torch
 import torch.nn.functional as F
 from torch.nn import ModuleList
 
-from utils.shortest_paths import shortest_distances
-
 from .mlp import instantiate_mlp
 from .spn_layer import SPN_Layer
+from ..utils.shortest_paths import shortest_distances
 
 avail_device = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -100,7 +99,7 @@ class SPN(torch.nn.Module):
     
     def generate_node_embeddings(self, data, shortest_paths = None) -> torch.Tensor:
         X = data.x.to(self.device)
-        A = torch.sparse_coo_tensor(data.edge_index, torch.ones(data.edge_index.size(1), device=self.device), device=self.device)
+        A = data.edge_index.to(self.device)
 
         # Shortest path calculation
         if shortest_paths is None:
