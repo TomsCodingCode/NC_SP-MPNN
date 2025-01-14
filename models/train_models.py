@@ -68,6 +68,7 @@ def get_trained_model(model: str, data, model_params: dict, params: dict):
         if val_acc > max_acc:
             max_acc = val_acc
             best_params = model.state_dict()
+            best_epoch = epoch
             patience = 0
         else:
             patience += 1
@@ -83,5 +84,5 @@ def get_trained_model(model: str, data, model_params: dict, params: dict):
     train_acc = evaluate(model, data, data.train_mask, predict_func=func)
     test_acc = evaluate(model, data, data.test_mask, predict_func=func)
     print(f'Training ended after {epoch + 1} Epochs:')
-    print(f'Train Accuracy: {train_acc:.4f}, Val Accuracy: {max_acc:.4f}, Test Accuracy: {test_acc:.4f}')
+    print(f'Model Epoch: {best_epoch}, Train Accuracy: {train_acc:.4f}, Val Accuracy: {max_acc:.4f}, Test Accuracy: {test_acc:.4f}')
     return model, validation_prog
